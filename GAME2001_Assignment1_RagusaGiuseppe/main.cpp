@@ -6,47 +6,70 @@
 using namespace std;
 
 int main() {
-	/*Array<int>* myArray = new UnorderedArray<int>(2);
-	myArray->Remove(2);
-	myArray->Add(5);
-	myArray->Add(3);
-	cout << myArray->GetMaxSize() << endl;
-	myArray->Add(1);
-	cout << myArray->GetMaxSize() << endl;
-	myArray->Add(2);
-	cout << myArray->GetMaxSize() << endl;
-	cout << myArray->GetNumElements() << endl;
-	myArray->Search(3);
-	myArray->Remove(2);*/
 
-	Array<int>* myArray = new OrderedArray<int>(2, false);
-	myArray->Remove(3);
-	myArray->Add(5);
-	myArray->Add(3);
-	myArray->Add(7);
-	myArray->DisplayValues();
-	myArray->Add(6);
-	myArray->Add(2);
-	myArray->Add(6);
-	cout << myArray->GetExpandValue() << endl;
-	myArray->DisplayValues();
-	myArray->Pop();
-	cout << "2 Found at index : " << myArray->Search(2) << endl;
-	cout << "7 Found at index : " << myArray->Search(7) << endl;
-	myArray->DisplayValues();
+	//Example 1
+	cout << "===== EXAMPLE 1: Unordered String Array =====" << endl;
+	Array<string>* stringArray = new UnorderedArray<string>(2);
+	stringArray->Push("Bananas");
+	stringArray->Push("Juice");
+	stringArray->Push("Spaghetti");
+	stringArray->Push("Cheese");
+	stringArray->DisplayValues();
+	cout << endl << "Array's Max Size: " << stringArray->GetMaxSize() << endl;
+	cout << "Number of Elements: " << stringArray->GetNumElements() << endl;
+	stringArray->Pop();
+	cout << "Pineapples found at index: " <<stringArray->Search("Pineapples") << " (NOT FOUND)" << endl;
+	cout << "Juice found index: " << stringArray->Search("Juice") << endl;
+	stringArray->Remove(1);
+	cout << endl;
+	stringArray->DisplayValues();
+	delete stringArray;
 
-	delete myArray;
+	//Example 2
+	cout << endl << endl << "===== EXAMPLE 2: Ordered Int Array, no duplicates =====" << endl;
+	Array<int>* intArray = new OrderedArray<int>(2, false);
+	cout << "Expand Value before pushing: " << intArray->GetExpandValue() << endl;
+	cout << "Max Size before pushing: " << intArray->GetMaxSize() << endl;
+	intArray->Push(4);
+	intArray->Push(8);
+	intArray->Push(3);
+	intArray->Push(2);
+	intArray->Push(7);
+	cout << "Expand Value after pushing: " << intArray->GetExpandValue() << endl;
+	cout << "Max Size after pushing: " << intArray->GetMaxSize() << endl;
+	intArray->DisplayValues();
+
+	cout << endl << "Trying to Push another 8:" << endl;
+	intArray->Push(8);
+	cout << "8 is located at index: " << intArray->Search(8) << endl;
+	intArray->Remove(intArray->Search(8));
+	intArray->DisplayValues();
+	intArray->Push(8);
+	intArray->DisplayValues();
+	cout << endl;
+	delete intArray;
+
+	//Example 3
+	cout << endl << endl << "===== EXAMPLE 3: Ordered Float Array. Array modified then sorted =====" << endl;
+	OrderedArray<float> floatArray = OrderedArray<float>(3, true);
+	floatArray.Push(2.0f);
+	floatArray.Push(4.7f);
+	floatArray.Push(9.3f);
+	floatArray.Push(10.0f);
+	floatArray.Push(12.0f);
+	floatArray.DisplayValues();
+	cout << endl;
+	floatArray[3] = 4.7f;
+	floatArray[4] = 6.1f;
+	cout << "After modifying array: " << endl;
+	floatArray.DisplayValues();
+	cout << "fixing the array using Sort() function:" << endl;
+	floatArray.Sort();
+	floatArray.DisplayValues();
+	
+	cout << endl;
+	floatArray.Clear();
+	floatArray.DisplayValues();
 
 	return 0;
-
-	/*
-		TO DO:
-		- Make Clean up Ordered Array's ADD function
-		- Put the REMOVE function in the Array class instead of both subclasses
-		- Make a SORT function for the Ordered Array using Week 4 lab
-		- Fix Ordered array to sort in ASCENDING and then fix BINARY SEARCH to work that way
-		- Make a custom ASSERT function
-		- Make a Cleaner main.cpp file for examples
-		- Final Cleanup
-	*/
 }

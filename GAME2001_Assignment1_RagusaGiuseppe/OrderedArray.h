@@ -8,11 +8,11 @@ public:
 	OrderedArray(int startSize, bool allowDupes);
 	~OrderedArray() override;
 
-	void Add(T item) override;
-	void Remove(int index) override;
+	void Push(T item) override;
 	int Search(T item) override;
 	string GetArrayType() override;
 
+	void Sort();
 	void SetAllowDuplicates(bool allow);
 	bool AllowDuplicates();
 private:
@@ -24,81 +24,52 @@ private:
 
 //Constructor. Uses an additional boolean for allowing duplicates
 template <typename T>
-OrderedArray<T>::OrderedArray(int startSize, bool allowDupes) : Array<T>(startSize)
-{
+OrderedArray<T>::OrderedArray(int startSize, bool allowDupes) : Array<T>(startSize) {
 	m_allowDuplicates = allowDupes;
 }
 
 //Destructor
 template <typename T>
-OrderedArray<T>::~OrderedArray()
-{
-	cout << "Ordered Array Destructor" << endl;
-}
+OrderedArray<T>::~OrderedArray() {}
 
-//Add function
+//Push function
 template <typename T>
-void OrderedArray<T>::Add(T item)
+void OrderedArray<T>::Push(T item)
 {
-	//assert
-	if (!m_allowDuplicates && Search(item) != -1) {
-		cout << "Duplicates are not allowed in this Array!" << endl;
+	//Assert to make sure duplicates aren't allowed
+	if (!this->Assert(m_allowDuplicates || (!m_allowDuplicates && Search(item) == -1), "Duplicates are not allowed in this Array!"))
 		return;
-	}
 
 	//Parent function that performs Expanding if Array is full
 	this->CheckSize();
 
 	int key;
 
+	//finds the spot in the array where value can be stored
 	for (int i = 0; i <= this->m_numElements; i++) {
-		if (this->m_pArray[i] < item) {
-			key = i;
+		key = i;
+		if (this->m_pArray[i] == 0 || item < this->m_pArray[i])
 			break;
-		}
 	}
 
-	for (int j = this->m_numElements; j >= key; j--) {
+	//shifts every other element down to make room
+	for (int j = this->m_numElements; j > key; j--) {
 		this->m_pArray[j] = this->m_pArray[j - 1];
 	}
 
-	this->m_pArray[key] = item;
-	//shift the elements down while also checking the new value against the previous values to find the appropriate spot
-	/*for (int i = this->m_numElements; i >= 0; i--) {
-		if (item > this->m_pArray[i]) {
-			this->m_pArray[i + 1] = item;
-			break;
-		}
-		this->m_pArray[i + 1] = this->m_pArray[i];
-	}*/
 	this->m_numElements++;
-}
-
-//Remove function. Unlike Unordered Array, elements need to be shifted down to maintain order
-template <typename T>
-void OrderedArray<T>::Remove(int index)
-{
-	//don't proceed if array is empty
-	if (this->m_numElements == 0) {
-		cout << "No elements to Delete" << endl;
-		return;
-	}
-
-	//shift all elements down by one (replacing the old value) and then decreasing the number of elements by 1
-	for (int i = index; i < this->m_numElements - 1; i++)
-		this->m_pArray[i] = this->m_pArray[i + 1];
-	this->m_numElements--;
+	this->m_pArray[key] = item;
+	cout << "Successfully added new value: " << item << endl;
 }
 
 //Triggers the Recursive Binary search function, but is not the recursive function itself
 template <typename T>
 int OrderedArray<T>::Search(T item)
 {
-	if (this->m_numElements == 0) {
-		cout << "This Array is empty" << endl;
-		return -1;
-	}
-	return BinarySearch(0, this->m_numElements - 1, item);
+	if (this->m_numElements > 0)
+		return BinarySearch(0, this->m_numElements - 1, item);
+
+	return -1;
 }
 
 //returns the type of array this object is
@@ -106,6 +77,33 @@ template <typename T>
 string OrderedArray<T>::GetArrayType()
 {
 	return "Ordered Array";
+}
+
+//Sorts the array (In case it wasn't in proper order)
+template <typename T>
+void OrderedArray<T>::Sort()
+{
+	//assert
+	if (!this->Assert(this->m_numElements > 0, "Cannot sort because array is empty"))
+		return;
+	
+	//SELECTION SORT
+	int smallestItemIndex;
+	T temp;
+
+	for (int i = 0; i < this->m_numElements; i++) {
+		smallestItemIndex = i;
+
+		for (int j = 1 + i; j < this->m_numElements; j++) {
+			if (this->m_pArray[smallestItemIndex] > this->m_pArray[j])
+				smallestItemIndex = j;
+		}
+
+		//Swapping
+		temp = this->m_pArray[smallestItemIndex];
+		this->m_pArray[smallestItemIndex] = this->m_pArray[i];
+		this->m_pArray[i] = temp;
+	}
 }
 
 //sets the flag that allows duplicates in the array with Add
@@ -131,6 +129,7 @@ bool OrderedArray<T>::CheckForDuplicate(T item)
 	return false;
 }
 
+//The recursive function being called for the Search() function
 template <typename T>
 int OrderedArray<T>::BinarySearch(int startIndex, int endIndex, T item)
 {
@@ -146,7 +145,7 @@ int OrderedArray<T>::BinarySearch(int startIndex, int endIndex, T item)
 		return midIndex;
 	else {
 		//Otherwise, check which side of the array the item is most likely to be on
-		if (this->m_pArray[midIndex] < item)
+		if (this->m_pArray[midIndex] > item)
 			return BinarySearch(startIndex, midIndex - 1, item);
 		else
 			return BinarySearch(midIndex + 1, endIndex, item);

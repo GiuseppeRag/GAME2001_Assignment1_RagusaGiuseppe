@@ -14,9 +14,9 @@ public:
 	virtual ~Array<T>();
 
 	void Clear();
-	virtual void Add(T item) = 0;
+	virtual void Push(T item) = 0;
 	void Pop();
-	virtual void Remove(int index) = 0;
+	void Remove(int index);
 	virtual int Search(T item) = 0;
 	virtual string GetArrayType() = 0;
 
@@ -25,8 +25,6 @@ public:
 	void SetExpandValue(int value);
 	int GetNumElements();
 	void DisplayValues();
-
-	void CheckSize();
 
 	T& operator[](int index);
 
@@ -37,41 +35,60 @@ protected:
 	int m_expandValue;
 	int m_numElements;
 
+	void CheckSize();
 	void Expand();
+	bool Assert(bool condition, string errorMessage);
 };
 
 //Array constructor. Both Subclasses will use this constructor
 template <typename T>
 Array<T>::Array(int startSize) : m_expandValue(2), m_numElements(0) {
-	if (startSize > 0) {
+	if (Assert(startSize > 0, "Array size must be greater than 0!")) {
 		m_maxSize = startSize;
 		m_pArray = new T[startSize];
-		memset(m_pArray, 0, startSize * sizeof(T));
 	}
 }
 
 //Array destructor. Both subclasses will use this.
 template <typename T>
 Array<T>::~Array() {
-	if (m_pArray != nullptr) {
+	if (Assert(m_pArray != nullptr, "Array is not defined, cannot delete")) {
 		delete[] m_pArray;
 		m_pArray = nullptr;
+		cout << "Deleted Array" << endl;
 	}
-	cout << "Deleted Array" << endl;
 }
 
 //"Empties" the array. The elements are still there, but the array treats them as if they don't exist
 template <typename T>
 void Array<T>::Clear() {
 		m_numElements = 0;
+		cout << "Array Cleared" << endl;
 }
 
 //Removes the last element of the Array. Different from the actual Remove() function, which removes a specified index
 template<typename T>
 inline void Array<T>::Pop()
 {
-	if (m_numElements > 0)
+	if (Assert(m_numElements > 0, "Cannot remove element because the array is empty")) {
 		m_numElements--;
+		cout << "Value: " << m_pArray[m_numElements] << " was popped from the array" << endl;
+	}
+}
+
+//Remove function. Different from the Pop() function, which only removes the last element in the list
+template <typename T>
+void Array<T>::Remove(int index)
+{
+	//don't proceed if array is empty
+	if (!Assert(m_numElements > 0, "Cannot remove element because the array is empty"))
+		return;
+
+	cout << "Value " << m_pArray[index] << " was removed from the array" << endl;
+	//shift all elements down by one (replacing the old value) and then decreasing the number of elements by 1
+	for (int i = index; i < this->m_numElements - 1; i++)
+		this->m_pArray[i] = this->m_pArray[i + 1];
+	this->m_numElements--;
 }
 
 //get the Max Size of the array
@@ -87,9 +104,8 @@ int Array<T>::GetExpandValue() {
 }
 
 //set the value that the array expands by when the array is full
-template<typename T>
-inline void Array<T>::SetExpandValue(int value)
-{
+template <typename T>
+void Array<T>::SetExpandValue(int value) {
 	m_expandValue = value;
 }
 
@@ -102,9 +118,12 @@ int Array<T>::GetNumElements() {
 //Print out the array's values
 template <typename T>
 void Array<T>::DisplayValues() {
-	for (int i = 0; i < m_numElements; i++)
-		std::cout << m_pArray[i] << " ";
-	std::cout << std::endl;
+	if(Assert(m_numElements > 0, "Array is Empty. Nothing to Print")) {
+		cout << "Array Contents: ";
+		for (int i = 0; i < m_numElements; i++)
+			cout << m_pArray[i] << ", ";
+		cout << endl;
+	}
 }
 
 //simple function to check if the array needs to expand
@@ -112,8 +131,8 @@ template<typename T>
 void Array<T>::CheckSize()
 {
 	if (this->m_numElements == this->m_maxSize) {
+		cout << "Array is full, and therefore will be expanded" << endl;
 		this->Expand();
-		cout << "Successfully Expanded" << endl;
 	}
 }
 
@@ -121,18 +140,14 @@ void Array<T>::CheckSize()
 template <typename T>
 void Array<T>::Expand()
 {
-	if (m_numElements == m_maxSize && m_maxSize > 0) {
+	if (Assert(m_numElements == m_maxSize && m_maxSize > 0, "Array Still has room, no need to Expand")) {
 		//create a larger array with the previous max size and the expand value
 		T* newArray = new T[m_maxSize + m_expandValue];
-		//assert(newArray != nullptr);
 
 		//copy contents of old array into new array
-		//memcpy(newArray, m_pArray, sizeof(T) * m_maxSize);
-		for (int i = 0; i < m_numElements; i++)
-			newArray[i] = m_pArray[i];
+		memcpy(newArray, m_pArray, sizeof(T) * m_maxSize);
 
 		//delete the old array contents and set its pointer to that of the new array. set the new array pointer to nullptr
-		delete[] m_pArray;
 		m_pArray = newArray;
 		newArray = nullptr;
 
@@ -143,10 +158,21 @@ void Array<T>::Expand()
 	return;
 }
 
+//Assert function. Prints an error if the condition is not valid, but does not crash the program
+template <typename T>
+bool Array<T>::Assert(bool condition, string errorMessage)
+{
+	if (!condition) {
+		cout << errorMessage << endl;
+		return false;
+	}
+	return true;
+}
+
 //Overload the [] operator to access this class like a normal array data structure
 template <typename T>
 T& Array<T>::operator[](int index) {
-	assert(this->m_pArray != nullptr && (index < this->m_numElements && index >= 0));
+	assert(this->m_pArray != nullptr && (index <= this->m_numElements && index >= 0));
 	return this->m_pArray[index];
 }
 
